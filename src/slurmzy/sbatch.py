@@ -8,7 +8,7 @@ def convert_ram(ram_in_gb):
         return f"{round(int(ram_in_gb * 1024))}M"
 
 
-def submit_job(command, name, ram_gb, time_hours, dry_run=False):
+def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1):
     ram = convert_ram(ram_gb)
 
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
@@ -22,6 +22,7 @@ def submit_job(command, name, ram_gb, time_hours, dry_run=False):
 #SBATCH --error={name}.e
 #SBATCH --mem={ram}
 #SBATCH --time={time_mins}
+#SBATCH --cpus_per_task={cpus}
 
 set -o pipefail
 start_time=$(date +"%Y-%m-%dT%H:%M:%S")
@@ -60,4 +61,5 @@ def run(options):
         options.ram,
         options.time,
         dry_run=options.dry_run,
+        cpus=options.cpus,
     )
