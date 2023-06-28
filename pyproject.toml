@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slurmzy"
+version = "0.0.1"
+description = "Wrapper for slurm"
+license = {text = "MIT"}
+
+[project.scripts]
+slurmzy = "slurmzy.__main__:main"
