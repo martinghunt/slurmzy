@@ -8,12 +8,14 @@ def convert_ram(ram_in_gb):
         return f"{round(int(ram_in_gb * 1024))}M"
 
 
-def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1):
+def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None):
     ram = convert_ram(ram_gb)
+    partition = "" if partition is None else f"#SBATCH --partition={partition}"
 
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
     # here is default of an integer specifying the number of minutes
     time_mins = int(round(time_hours * 60))
+
 
     # Create the job script
     job_script = f"""#!/usr/bin/env bash
@@ -22,7 +24,8 @@ def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1):
 #SBATCH --error={name}.e
 #SBATCH --mem={ram}
 #SBATCH --time={time_mins}
-#SBATCH --cpus_per_task={cpus}
+#SBATCH --cpus-per-task={cpus}
+{partition}
 
 set -o pipefail
 start_time=$(date +"%Y-%m-%dT%H:%M:%S")
@@ -62,4 +65,5 @@ def run(options):
         options.time,
         dry_run=options.dry_run,
         cpus=options.cpus,
+        partition=options.queue,
     )

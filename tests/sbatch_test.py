@@ -20,11 +20,13 @@ def test_submit_job_dry_run():
         2, # time in hours, will be converted to minutes
         dry_run=True,
         cpus=42,
+        partition="queue_name",
     )
     assert "echo test" in got
     assert "SBATCH --output=job_name.o" in got
     assert "SBATCH --error=job_name.e" in got
     assert "SBATCH --mem=3G" in got
     assert "SBATCH --time=120" in got
-    assert "SBATCH --cpus_per_task=42" in got
+    assert "SBATCH --cpus-per-task=42" in got
+    assert "SBATCH --partition=queue_name" in got
 
