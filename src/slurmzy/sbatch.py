@@ -14,12 +14,14 @@ def get_partition_str(partition):
         if "SLURMZY_DEFAULT_PARTITION" in os.environ:
             partition = os.environ["SLURMZY_DEFAULT_PARTITION"]
         else:
-            return  ""
+            return ""
 
     return f"#SBATCH --partition={partition}"
 
 
-def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None):
+def submit_job(
+    command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None
+):
     ram = convert_ram(ram_gb)
     partition = get_partition_str(partition)
 
@@ -27,9 +29,9 @@ def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1, partiti
     # here is default of an integer specifying the number of minutes
     time_mins = int(round(time_hours * 60))
 
-
     # Create the job script
-    job_script = f"""#!/usr/bin/env bash
+    job_script = (
+        f"""#!/usr/bin/env bash
 #SBATCH --job-name={name}
 #SBATCH --output={name}.o
 #SBATCH --error={name}.e
@@ -53,16 +55,18 @@ SLURM_STATS\tcommand\t{command}
 SLURM_STATS\tstart_time\t$start_time
 SLURM_STATS\tend_time\t$end_time
 SLURM_STATS\texit_code\t$exit_code"
-seff $SLURM_JOB_ID | awk '""" + '{print "SLURM_STATS_SEFF\t"$0}' + """'
+seff $SLURM_JOB_ID | awk '"""
+        + '{print "SLURM_STATS_SEFF\t"$0}'
+        + """'
 exit $exit_code
 """
+    )
 
     if dry_run:
         print(job_script)
-        return(job_script)
+        return job_script
     else:
-        process = subprocess.run(['sbatch'], input=job_script, text=True, check=True)
-
+        process = subprocess.run(["sbatch"], input=job_script, text=True, check=True)
 
 
 def run(options):
