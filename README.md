@@ -3,7 +3,7 @@
 Slurm wrapper scripts
 
 
-## Install
+## Install
 
 It's pure python, with no dependencies. Run:
 
@@ -61,6 +61,6 @@ SLURM_STATS_SEFF	WARNING: Efficiency statistics may be misleading for RUNNING jo
 ```
 
 
-## Get stats of finished jobs
+## Get stats of finished jobs
 
 To do
