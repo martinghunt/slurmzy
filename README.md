@@ -5,7 +5,8 @@ Slurm wrapper scripts
 
 ## Install
 
-It's pure python, with no dependencies. Run:
+It's pure python, with no dependencies (apart from assuming Slurm
+is installed, obviously). Run:
 
 ```
 python3 -m pip install .
