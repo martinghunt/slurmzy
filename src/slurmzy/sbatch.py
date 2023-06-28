@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 
@@ -8,9 +9,19 @@ def convert_ram(ram_in_gb):
         return f"{round(int(ram_in_gb * 1024))}M"
 
 
+def get_partition_str(partition):
+    if partition is None:
+        if "SLURMZY_DEFAULT_PARTITION" in os.environ:
+            partition = os.environ["SLURMZY_DEFAULT_PARTITION"]
+        else:
+            return  ""
+
+    return f"#SBATCH --partition={partition}"
+
+
 def submit_job(command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None):
     ram = convert_ram(ram_gb)
-    partition = "" if partition is None else f"#SBATCH --partition={partition}"
+    partition = get_partition_str(partition)
 
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
     # here is default of an integer specifying the number of minutes

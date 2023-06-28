@@ -22,8 +22,14 @@ Run a job with:
 slurmzy run <memory in GB> <name> <command>
 ```
 
-By default it sets a time limit of 1 hour. Change this to limit to
-`N` hours  with `--time N`.
+Notes:
+
+* By default it sets a time limit of 1 hour. Change this to limit to
+  `N` hours  with `--time N`.
+* The default queue/partition is slurm's default, unless you have
+  the environment variable `SLURMZY_DEFAULT_PARTITION` set, in which case
+  that is used. Either way, the option `--queue` overrides the default.
+
 
 The job will write all `stdout` to the file `name.o`, and all `stderr` to
 `name.e`. It will also add some job stats at the end of `name.o`: the output
