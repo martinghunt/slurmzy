@@ -1,6 +1,6 @@
 # slurmzy
 
-Slurm wrapper scripts
+Slurm wrapper scripts.
 
 
 ## Install
@@ -13,6 +13,25 @@ python3 -m pip install .
 ```
 
 to install the script `slurmzy`
+
+
+## tl;dr synopsis
+
+Submit a job asking for 1GB RAM, called `my_job`, that runs the script
+`my_script`:
+
+```
+slurmzy run 1 my_job my_script
+```
+
+It will write `stdout`, and job stats (eg run time, memory etc) to the file
+`my_job.o`, and `stderr` to the file `my_job.e`.
+
+Get a summary of the job, when it has finished:
+
+```
+slurmzy ostats my_job.o
+```
 
 
 ## Submit job
@@ -39,35 +58,52 @@ reproduce what LSF does (but more grep-friendly). It also gets the
 output of `seff` on the job at the end, but since the job has not
 yet finished, the output is of limited use (and the state is "RUNNING").
 
-The end of the `name.o` file looks like this:
+
+The options to `run` are:
 
 ```
-	Command being timed: "/usr/local/bin/bash -c echo test"
-	User time (seconds): 0.00
-	System time (seconds): 0.00
-...skip lots of lines from time -v to save space in this README...
-	Page size (bytes): 4096
-	Exit status: 0
-
-SLURM_STATS_BEGIN
-SLURM_STATS	command	echo test
-SLURM_STATS	start_time	2023-06-28T13:47:33
-SLURM_STATS	end_time	2023-06-28T13:47:33
-SLURM_STATS	exit_code	0
-SLURM_STATS_SEFF	Job ID: 4242424242
-SLURM_STATS_SEFF	Cluster: cluster_name
-SLURM_STATS_SEFF	User/Group: lee/rush
-SLURM_STATS_SEFF	State: RUNNING
-SLURM_STATS_SEFF	Cores: 1
-SLURM_STATS_SEFF	CPU Utilized: 00:00:00
-SLURM_STATS_SEFF	CPU Efficiency: 0.00% of 00:00:00 core-walltime
-SLURM_STATS_SEFF	Job Wall-clock time: 00:00:00
-SLURM_STATS_SEFF	Memory Utilized: 0.00 MB (estimated maximum)
-SLURM_STATS_SEFF	Memory Efficiency: 0.00% of 102.00 MB (102.00 MB/node)
-SLURM_STATS_SEFF	WARNING: Efficiency statistics may be misleading for RUNNING jobs.
+--norun               Do not submit job. Print the script that would be submitted
+-c INT, --cpus INT    Number of cpus [1]
+-q QUEUE_NAME, --queue QUEUE_NAME
+                      Queue ('partition') to use instead of default
+-t FLOAT, --time FLOAT
+                      Time limit in hours [1]
 ```
-
 
 ## Get stats of finished jobs
 
-To do
+Run this to get a summary of jobs from a list of output `.o` files:
+
+```
+slurmzy ostats *.o
+```
+
+That will summarise all `.o` files in your current directory. It outputs
+to stdtout in TSV format. Example:
+
+```
+slurmzy ostats -f *.o | column -t
+exit_code  system_time_h  wall_clock_h  max_ram  requested_ram  filename
+0          0.2            0.21          1.01     1.6            happy.o
+137        1.0            1.1           2.01     1.0            too_much_ram.o
+TIMEOUT    None           0.02          None     0.1            hit_time_limit.o
+```
+
+In that example, the first job ran OK (`exit_code` zero), the second
+hit the memory limit, and the third job hit the time limit.
+Except for `TIMEOUT`, the `exit_code` will be the actual exit code from
+the command you ran.
+
+The RAM is in GB.
+
+When everything runs ok, all the columns should have sensible entries.
+When things fail, some columns do not have information (this is a work
+in progess and things may improve).
+
+Options to `ostats` are:
+
+```
+  -a, --all_columns   Output all columns
+  -f, --fails         Output only failed jobs
+  --time_units s|m|h  Time units to report, h (hours), m (minutes), s (seconds) [h]
+```

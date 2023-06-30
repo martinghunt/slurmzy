@@ -7,6 +7,7 @@ except:
 
 
 __all__ = [
+    "job_stats",
     "sbatch",
 ]
 

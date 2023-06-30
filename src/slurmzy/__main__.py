@@ -13,17 +13,17 @@ def main(args=None):
     )
 
     parser.add_argument("--version", action="version", version=slurmzy.__version__)
-
     subparsers = parser.add_subparsers(title="Available commands", help="", metavar="")
 
+    # ------------------------ run --------------------------------------------
     subparser_run = subparsers.add_parser(
         "run",
         help="Submit job to slurm",
         usage="slurmzy run [options] <memory in GB> <name> <command>",
-        description="slurmzy run [options] <ram in GB> <name> <command>",
+        description="Submit job to slurm",
     )
     subparser_run.add_argument(
-        "--dry_run",
+        "--norun",
         action="store_true",
         help="Do not submit job. Print the script that would be submitted",
     )
@@ -55,6 +55,27 @@ def main(args=None):
         "command", nargs=argparse.REMAINDER, help="Command to be run"
     )
     subparser_run.set_defaults(func=slurmzy.sbatch.run)
+
+    # ------------------------ ostats -----------------------------------------
+    subparser_ostats = subparsers.add_parser(
+        "ostats",
+        help="Gather stats from .o files of finished jobs",
+        usage="slurmzy ostats [options] <list of .o files>",
+        description="Gather stats from .o files of finished jobs",
+    )
+    subparser_ostats.add_argument(
+        "filenames", nargs="+", help="Name(s) of .o file(s)"
+    )
+    subparser_ostats.add_argument(
+        "-a", "--all_columns", action="store_true", help="Output all columns"
+    )
+    subparser_ostats.add_argument(
+        "-f", "--fails", action="store_true", help="Output only failed jobs"
+    )
+    subparser_ostats.add_argument(
+        "--time_units", choices=["s", "m", "h"], help="Time units to report, h (hours), m (minutes), s (seconds) [%(default)s]", default="h", metavar="s|m|h",
+    )
+    subparser_ostats.set_defaults(func=slurmzy.job_stats.parse_o_files)
 
     args = parser.parse_args()
     if hasattr(args, "func"):
