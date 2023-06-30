@@ -100,6 +100,13 @@ When everything runs ok, all the columns should have sensible entries.
 When things fail, some columns do not have information (this is a work
 in progess and things may improve).
 
+Any `.o` files that have no run information will be ignored, and not
+appear in the output. This means you can safely get the stats of
+jobs where you know some will still be running. For example 
+running `slurmzy ostats *.o` gets stats of all the finished
+jobs in your current directory and not report on the jobs that are
+in progress.
+
 Options to `ostats` are:
 
 ```
