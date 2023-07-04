@@ -14,16 +14,37 @@ def get_partition_str(partition):
         if "SLURMZY_DEFAULT_PARTITION" in os.environ:
             partition = os.environ["SLURMZY_DEFAULT_PARTITION"]
         else:
-            return ""
+            return None
 
     return f"#SBATCH --partition={partition}"
 
 
+def get_array_str(start, end, limit=10):
+    if (start is None and end is not None) or (end is None and start is not None):
+        raise Exception(f"start, end must be both used, or neither used. start={start}, end={end}")
+
+    if start is not None:
+        return f"#SBATCH --array={start}-{end}%{limit}"
+    else:
+        return None
+
 def submit_job(
-    command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None
+    command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None, array_start=None, array_end=None, array_limit=10,
 ):
     ram = convert_ram(ram_gb)
-    partition = get_partition_str(partition)
+    array_str = get_array_str(array_start, array_end, array_limit)
+    extra_opts = [
+        get_partition_str(partition),
+        array_str,
+    ]
+    extra_opts = "\n".join([x for x in extra_opts if x is not None])
+
+    if array_str is None:
+        out_err_prefix = name
+    else:
+        out_err_prefix = name + ".%a"
+        command = command.replace("SLURM_ARRAY_TASK_ID", "$SLURM_ARRAY_TASK_ID")
+
 
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
     # here is default of an integer specifying the number of minutes.
@@ -32,13 +53,13 @@ def submit_job(
     # Create the job script
     job_script = f"""#!/usr/bin/env bash
 #SBATCH --job-name={name}
-#SBATCH --output={name}.o
-#SBATCH --error={name}.e
+#SBATCH --output={out_err_prefix}.o
+#SBATCH --error={out_err_prefix}.e
 #SBATCH --mem={ram}
 #SBATCH --time={time_mins}
 #SBATCH --cpus-per-task={cpus}
 #SBATCH --signal=B:SIGUSR1@60
-{partition}
+{extra_opts}
 
 start_time=$(date +"%Y-%m-%dT%H:%M:%S")
 start_seconds=$(date +%s)
@@ -74,7 +95,7 @@ fi
 trap gather_stats EXIT SIGUSR1
 
 set -o pipefail
-/usr/bin/time -a -o {name}.o -v $SHELL -c "$(cat << 'EOF'
+/usr/bin/time -a -o {name}.$SLURM_ARRAY_TASK_ID.o -v $SHELL -c "$(cat << 'EOF'
 {command}
 EOF
 )"
@@ -102,4 +123,7 @@ def run(options):
         dry_run=options.norun,
         cpus=options.cpus,
         partition=options.queue,
+        array_start=options.array_start,
+        array_end=options.array_end,
+        array_limit=options.array_limit,
     )

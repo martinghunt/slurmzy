@@ -28,6 +28,25 @@ def main(args=None):
         help="Do not submit job. Print the script that would be submitted",
     )
     subparser_run.add_argument(
+        "--array_start",
+        type=int,
+        help="Start index of job array",
+        metavar="INT",
+    )
+    subparser_run.add_argument(
+        "--array_end",
+        type=int,
+        help="End index of job array",
+        metavar="INT",
+    )
+    subparser_run.add_argument(
+        "--array_limit",
+        type=int,
+        help="Max array elements allowed to run [%(default)s]",
+        default=10,
+        metavar="INT",
+    )
+    subparser_run.add_argument(
         "-c",
         "--cpus",
         type=int,
