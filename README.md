@@ -60,20 +60,53 @@ The job will write all `stdout` to the file `name.o`, and all `stderr` to
 `name.e`. It will also add some job stats at the end of `name.o`: the output
 of `/usr/bin/time -v`, and some more stats. This is a basic attempt to
 reproduce what LSF does (but more grep-friendly). It also gets the
-output of `seff` on the job at the end, but since the job has not
-yet finished, the output is of limited use (and the state is "RUNNING").
+output of `jobinfo` on the job at the end, but since the job has not
+yet finished, the output is of limited use (and the state is probably "RUNNING").
 
 
 The options to `run` are:
 
 ```
---norun               Do not submit job. Print the script that would be submitted
--c INT, --cpus INT    Number of cpus [1]
--q QUEUE_NAME, --queue QUEUE_NAME
-                      Queue ('partition') to use instead of default
--t FLOAT, --time FLOAT
-                      Time limit in hours [1]
+  --norun               Do not submit job. Print the script that would be submitted
+  --array_start INT     Start index of job array
+  --array_end INT       End index of job array
+  --array_limit INT     Max array elements allowed to run [10]
+  -c INT, --cpus INT    Number of cpus [1]
+  -q QUEUE_NAME, --queue QUEUE_NAME
+                        Queue ('partition') to use instead of default
+  -t FLOAT, --time FLOAT
+                        Time limit in hours [1]
 ```
+
+### Job arrays
+
+To run a job array, use the `--array_start` and `--array_end` options
+to specify the first and last indexes. They must both be used.
+The option `--array_limit` limits the total job elements allowed to
+run at any time.
+
+To help stop driving yourself mad with escaping special characters,
+if you put `SLURM_ARRAY_TASK_ID` in the
+command, it will be replaced with `$SLURM_ARRAY_TASK_ID` (ie `$` added)
+in the command that is run.
+
+Toy example:
+
+```
+slurmzy run --array_start 1 --array_end 3 0.1 name echo array index is SLURM_ARRAY_TASK_ID
+```
+
+This submits a job array with 3 elements. Each job simply runs this command:
+
+```
+echo array index is $SLURM_ARRAY_TASK_ID
+```
+
+Job 1 prints `array index is 1`, and similarly for jobs 2 and 3.
+
+The output files are called `name.1.o`, `name.2.o`, `name.3.o`, and similarly
+for the `.e` error files.
+
 
 ## Get stats of finished jobs
 
@@ -88,10 +121,10 @@ to stdtout in TSV format. Example:
 
 ```
 slurmzy ostats -f *.o | column -t
-exit_code  system_time_h  wall_clock_h  max_ram  requested_ram  filename
-0          0.2            0.21          1.01     1.6            happy.o
-137        1.0            1.1           2.01     1.0            too_much_ram.o
-TIMEOUT    None           0.02          None     0.1            hit_time_limit.o
+exit_code  system_time_h  wall_clock_h  max_ram  requested_ram  nodes  filename
+0          0.2            0.21          1.01     1.6            node1  happy.o
+137        1.0            1.1           2.01     1.0            node2  too_much_ram.o
+TIMEOUT    None           0.02          None     0.1            node3  hit_time_limit.o
 ```
 
 In that example, the first job ran OK (`exit_code` zero), the second
@@ -119,3 +152,15 @@ Options to `ostats` are:
   -f, --fails         Output only failed jobs
   --time_units s|m|h  Time units to report, h (hours), m (minutes), s (seconds) [h]
 ```
+
+### Known issues
+
+RAM and cpu time are not reported by `ostats` if the job fails because of a
+timeout or because it was cancelled with `scancel`.
+
+The output of `jobinfo` is put into the `.o` file. This is the last thing
+that is run, but the job is still running under slurm.
+This means the contents are not reliable, particularly the RAM and CPU stats.
+For this reason, we get the CPU and memory from the output
+of `/usr/bin/time -v`. However, this output is not always present
+if the job is terminated prematurely.
