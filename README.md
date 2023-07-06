@@ -153,7 +153,7 @@ Options to `ostats` are:
   --time_units s|m|h  Time units to report, h (hours), m (minutes), s (seconds) [h]
 ```
 
-### Known issues
+## Known issues
 
 RAM and cpu time are not reported by `ostats` if the job fails because of a
 timeout or because it was cancelled with `scancel`.
