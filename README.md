@@ -117,7 +117,7 @@ slurmzy ostats *.o
 ```
 
 That will summarise all `.o` files in your current directory. It outputs
-to stdtout in TSV format. Example:
+to `stdout` in TSV format. Example:
 
 ```
 slurmzy ostats -f *.o | column -t
