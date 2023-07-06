@@ -78,7 +78,6 @@ def submit_job(
 start_time=$(date +"%Y-%m-%dT%H:%M:%S")
 start_seconds=$(date +%s)
 
-
 end_time=RUNNING
 exit_code=UNKNOWN
 
@@ -102,8 +101,6 @@ SLURM_STATS\twall_clock_s\t$wall_clock_s
 SLURM_STATS\texit_code\t$exit_code"
 slurmzy jobinfo $SLURM_JOB_ID | """
         + """ awk '{print "SLURM_STATS_JOBINFO\t"$0}'
-seff $SLURM_JOB_ID | """
-        + """ awk '{print "SLURM_STATS_SEFF\t"$0}'
 
 if [ $exit_code = "UNKNOWN" ]
 then
@@ -116,7 +113,6 @@ fi
         + f"""
 trap gather_stats EXIT SIGUSR1
 
-set -o pipefail
 /usr/bin/time -a -o {time_outfile} -v $SHELL -c "$(cat << 'EOF'
 {command}
 EOF

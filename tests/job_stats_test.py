@@ -23,9 +23,9 @@ def test_unix_time_lines_to_time_and_memory():
     ]
     assert job_stats.unix_time_lines_to_time_and_memory(lines) == {
         "user_time": 0.06,
-        "system_time_s": 0.35,
-        "system_time_m": 0.01,
-        "system_time_h": 0.0,
+        "cpu_time_s": 0.35,
+        "cpu_time_m": 0.01,
+        "cpu_time_h": 0.0,
         "cpu_percent": 47.0,
         "wall_clock_s_from_time": 0.87,
         "wall_clock_m_from_time": 0.01,
@@ -37,6 +37,7 @@ def test_unix_time_lines_to_time_and_memory():
 def test_parse_stats_lines():
     lines = [
         "SLURM_STATS_BEGIN",
+        "SLURM_STATS\tjob_id\t1234567",
         "SLURM_STATS\tcommand\techo blah",
         "SLURM_STATS\trequested_ram\t0.1",
         "SLURM_STATS\tjob_name\tdave_lister",
@@ -44,18 +45,11 @@ def test_parse_stats_lines():
         "SLURM_STATS\tend_time\t2023-06-30T15:06:47",
         "SLURM_STATS\twall_clock_s\t42",
         "SLURM_STATS\texit_code\t137",
-        "SLURM_STATS_SEFF\tJob ID: 1234567",
-        "SLURM_STATS_SEFF\tCluster: codon",
-        "SLURM_STATS_SEFF\tUser/Group: mhunt/iqbal",
-        "SLURM_STATS_SEFF\tState: RUNNING",
-        "SLURM_STATS_SEFF\tCores: 1",
-        "SLURM_STATS_SEFF\tCPU Utilized: 00:00:00",
-        "SLURM_STATS_SEFF\tCPU Efficiency: 0.00% of 00:00:01 core-walltime",
-        "SLURM_STATS_SEFF\tJob Wall-clock time: 00:00:01",
-        "SLURM_STATS_SEFF\tMemory Utilized: 0.00 MB (estimated maximum)",
-        "SLURM_STATS_SEFF\tMemory Efficiency: 0.00% of 102.00 MB (102.00 MB/node)",
-        "SLURM_STATS_SEFF\tWARNING: Efficiency statistics may be misleading for RUNNING jobs.",
+        "SLURM_STATS_JOBINFO\tNodes : node1",
+        "SLURM_STATS_JOBINFO\tState : RUNNING",
     ]
+
+    print("GOT:", job_stats.parse_stats_lines(lines))
 
     assert job_stats.parse_stats_lines(lines) == {
         "command": "echo blah",
@@ -65,7 +59,7 @@ def test_parse_stats_lines():
         "end_time": "2023-06-30T15:06:47",
         "wall_clock_s": 42,
         "exit_code": 137,
-        "job_id": 1234567,
+        "job_id": "1234567",
+        "nodes": "node1",
         "state": "RUNNING",
-        "cores": 1
     }

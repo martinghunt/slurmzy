@@ -1,9 +1,8 @@
 import copy
 
-SEFF_LOOKUP = {
-    "Job ID": ("job_id", int),
-    "Cores": ("cores", int),
-    "State": ("state", str),
+JOBINFO_LOOKUP = {
+    "State": "state",
+    "Nodes": "nodes",
 }
 
 SLURM_STATS = {
@@ -23,21 +22,20 @@ OTHER_STATS = {
     "cpu_percent": None,
     "ram_percent": None,
     "user_time": None,
-    "system_time_s": None,
-    "system_time_m": None,
-    "system_time_h": None,
+    "cpu_time_s": None,
+    "cpu_time_m": None,
+    "cpu_time_h": None,
     "wall_clock_s_from_time": None,
     "wall_clock_m_from_time": None,
     "wall_clock_h_from_time": None,
     "job_id": None,
-    "cores": None,
     "wall_clock_m": None,
     "wall_clock_h": None,
 }
 
 EMPTY_STATS = copy.deepcopy(OTHER_STATS)
 EMPTY_STATS.update({k: None for k in SLURM_STATS})
-EMPTY_STATS.update({v[0]: None for v in SEFF_LOOKUP.values()})
+EMPTY_STATS.update({k: None for k in JOBINFO_LOOKUP})
 
 
 def parse_elapsed_time_line(line):
@@ -70,9 +68,9 @@ def unix_time_lines_to_time_and_memory(lines):
         elif line.startswith("\tUser time (seconds): "):
             stats["user_time"] = float(line.rstrip().split()[-1])
         elif line.startswith("\tSystem time (seconds): "):
-            stats["system_time_s"] = float(line.rstrip().split()[-1])
-            stats["system_time_m"] = round(stats["system_time_s"] / 60, 2)
-            stats["system_time_h"] = round(stats["system_time_s"] / (60 * 60), 2)
+            stats["cpu_time_s"] = float(line.rstrip().split()[-1])
+            stats["cpu_time_m"] = round(stats["cpu_time_s"] / 60, 2)
+            stats["cpu_time_h"] = round(stats["cpu_time_s"] / (60 * 60), 2)
         elif line.startswith("\tMaximum resident set size (kbytes): "):
             stats["max_ram"] = round(
                 float(line.rstrip().split()[-1]) / (1024 * 1024), 4
@@ -93,12 +91,10 @@ def parse_stats_lines(lines):
                 stats[key] = value
             else:
                 stats[key] = SLURM_STATS[key](value)
-        elif line.startswith("SLURM_STATS_SEFF\t") and ":" in line:
-            key, value = line.split("\t", maxsplit=1)[1].split(":", maxsplit=1)
-            value = value.strip()
-            if key in SEFF_LOOKUP:
-                new_key, value_type = SEFF_LOOKUP[key]
-                stats[new_key] = value_type(value)
+        elif line.startswith("SLURM_STATS_JOBINFO\t") and ":" in line:
+            key, value = [x.strip() for x in line.split("\t")[1].split(":", maxsplit=1)]
+            if key in JOBINFO_LOOKUP:
+                stats[JOBINFO_LOOKUP[key]] = value
 
     return stats
 
@@ -145,8 +141,11 @@ def load_one_o_file(filename):
         stats["wall_clock_m"] = round(stats["wall_clock_s"] / 60, 2)
         stats["wall_clock_h"] = round(stats["wall_clock_s"] / (60 * 60), 2)
 
-    if stats["state"] is not None and stats["state"].startswith("TIMEOUT"):
-        stats["exit_code"] = "TIMEOUT"
+    if stats["state"] is not None:
+        for prefix in ["TIMEOUT", "CANCELLED"]:
+            if stats["state"].startswith(prefix):
+                stats["exit_code"] = prefix
+                break
 
     return stats
 
@@ -154,10 +153,11 @@ def load_one_o_file(filename):
 def parse_o_files(options):
     columns = [
         "exit_code",
-        f"system_time_{options.time_units}",
+        f"cpu_time_{options.time_units}",
         f"wall_clock_{options.time_units}",
         "max_ram",
         "requested_ram",
+        "nodes",
     ]
     if options.all_columns:
         columns.extend(sorted([x for x in EMPTY_STATS if x not in columns]))
