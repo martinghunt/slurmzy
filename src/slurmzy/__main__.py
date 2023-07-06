@@ -82,9 +82,7 @@ def main(args=None):
         usage="slurmzy ostats [options] <list of .o files>",
         description="Gather stats from .o files of finished jobs",
     )
-    subparser_ostats.add_argument(
-        "filenames", nargs="+", help="Name(s) of .o file(s)"
-    )
+    subparser_ostats.add_argument("filenames", nargs="+", help="Name(s) of .o file(s)")
     subparser_ostats.add_argument(
         "-a", "--all_columns", action="store_true", help="Output all columns"
     )
@@ -92,9 +90,26 @@ def main(args=None):
         "-f", "--fails", action="store_true", help="Output only failed jobs"
     )
     subparser_ostats.add_argument(
-        "--time_units", choices=["s", "m", "h"], help="Time units to report, h (hours), m (minutes), s (seconds) [%(default)s]", default="h", metavar="s|m|h",
+        "--time_units",
+        choices=["s", "m", "h"],
+        help="Time units to report, h (hours), m (minutes), s (seconds) [%(default)s]",
+        default="h",
+        metavar="s|m|h",
     )
     subparser_ostats.set_defaults(func=slurmzy.job_stats.parse_o_files)
+
+    # ------------------------ jobinfo -----------------------------------------
+    subparser_jobinfo = subparsers.add_parser(
+        "jobinfo",
+        help="Wrapper for jobinfo script",
+        usage="slurmzy jobinfo [options] <job_id>",
+        description="Wrapper for jobinfo script",
+    )
+    subparser_jobinfo.add_argument(
+        "job_id",
+        help="Job ID",
+    )
+    subparser_jobinfo.set_defaults(func=slurmzy.ext.jobinfo_runner.run)
 
     args = parser.parse_args()
     if hasattr(args, "func"):

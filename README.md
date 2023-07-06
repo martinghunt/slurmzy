@@ -15,6 +15,11 @@ python3 -m pip install .
 to install the script `slurmzy`
 
 
+## Acknowledgements
+
+This repo contains a copy of the excellent `jobinfo` script from
+https://github.com/birc-aeh/slurm-utils/tree/master
+
 ## tl;dr synopsis
 
 Submit a job asking for 1GB RAM, called `my_job`, that runs the script
@@ -102,7 +107,7 @@ in progess and things may improve).
 
 Any `.o` files that have no run information will be ignored, and not
 appear in the output. This means you can safely get the stats of
-jobs where you know some will still be running. For example 
+jobs where you know some will still be running. For example
 running `slurmzy ostats *.o` gets stats of all the finished
 jobs in your current directory and not report on the jobs that are
 in progress.

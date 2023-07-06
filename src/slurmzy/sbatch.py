@@ -21,15 +21,27 @@ def get_partition_str(partition):
 
 def get_array_str(start, end, limit=10):
     if (start is None and end is not None) or (end is None and start is not None):
-        raise Exception(f"start, end must be both used, or neither used. start={start}, end={end}")
+        raise Exception(
+            f"start, end must be both used, or neither used. start={start}, end={end}"
+        )
 
     if start is not None:
         return f"#SBATCH --array={start}-{end}%{limit}"
     else:
         return None
 
+
 def submit_job(
-    command, name, ram_gb, time_hours, dry_run=False, cpus=1, partition=None, array_start=None, array_end=None, array_limit=10,
+    command,
+    name,
+    ram_gb,
+    time_hours,
+    dry_run=False,
+    cpus=1,
+    partition=None,
+    array_start=None,
+    array_end=None,
+    array_limit=10,
 ):
     ram = convert_ram(ram_gb)
     array_str = get_array_str(array_start, array_end, array_limit)
@@ -47,13 +59,13 @@ def submit_job(
         command = command.replace("SLURM_ARRAY_TASK_ID", "$SLURM_ARRAY_TASK_ID")
         time_outfile = f"{name}.$SLURM_ARRAY_TASK_ID.o"
 
-
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
     # here is default of an integer specifying the number of minutes.
     time_mins = int(round(time_hours * 60))
 
     # Create the job script
-    job_script = f"""#!/usr/bin/env bash
+    job_script = (
+        f"""#!/usr/bin/env bash
 #SBATCH --job-name={name}
 #SBATCH --output={out_err_prefix}.o
 #SBATCH --error={out_err_prefix}.e
@@ -70,21 +82,28 @@ start_seconds=$(date +%s)
 end_time=RUNNING
 exit_code=UNKNOWN
 
-gather_stats() """ + "{" + f"""
+gather_stats() """
+        + "{"
+        + f"""
 # unset the trap otherwise this function can get called more than once
 trap - EXIT SIGUSR1
 end_time=$(date +"%Y-%m-%dT%H:%M:%S")
 end_seconds=$(date +%s)
 wall_clock_s=$(($end_seconds-$start_seconds))
 echo -e "SLURM_STATS_BEGIN
+SLURM_STATS\tjob_id\t$SLURM_JOB_ID
 SLURM_STATS\tcommand\t{command}
 SLURM_STATS\trequested_ram\t{ram_gb}
+SLURM_STATS\trequested_time\t{time_mins}
 SLURM_STATS\tjob_name\t{name}
 SLURM_STATS\tstart_time\t$start_time
 SLURM_STATS\tend_time\t$end_time
 SLURM_STATS\twall_clock_s\t$wall_clock_s
 SLURM_STATS\texit_code\t$exit_code"
-seff $SLURM_JOB_ID | """ + """ awk '{print "SLURM_STATS_SEFF\t"$0}'
+slurmzy jobinfo $SLURM_JOB_ID | """
+        + """ awk '{print "SLURM_STATS_JOBINFO\t"$0}'
+seff $SLURM_JOB_ID | """
+        + """ awk '{print "SLURM_STATS_SEFF\t"$0}'
 
 if [ $exit_code = "UNKNOWN" ]
 then
@@ -93,7 +112,8 @@ else
     exit $exit_code
 fi
 }
-""" + f"""
+"""
+        + f"""
 trap gather_stats EXIT SIGUSR1
 
 set -o pipefail
@@ -105,6 +125,7 @@ EOF
 exit_code=$?
 gather_stats
 """
+    )
 
     if dry_run:
         print(job_script)
