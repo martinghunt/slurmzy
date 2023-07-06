@@ -35,7 +35,7 @@ OTHER_STATS = {
 
 EMPTY_STATS = copy.deepcopy(OTHER_STATS)
 EMPTY_STATS.update({k: None for k in SLURM_STATS})
-EMPTY_STATS.update({k: None for k in JOBINFO_LOOKUP})
+EMPTY_STATS.update({v: None for v in JOBINFO_LOOKUP.values()})
 
 
 def parse_elapsed_time_line(line):
