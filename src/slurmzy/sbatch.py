@@ -41,9 +41,11 @@ def submit_job(
 
     if array_str is None:
         out_err_prefix = name
+        time_outfile = f"{out_err_prefix}.o"
     else:
         out_err_prefix = name + ".%a"
         command = command.replace("SLURM_ARRAY_TASK_ID", "$SLURM_ARRAY_TASK_ID")
+        time_outfile = f"{name}.$SLURM_ARRAY_TASK_ID.o"
 
 
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
@@ -95,7 +97,7 @@ fi
 trap gather_stats EXIT SIGUSR1
 
 set -o pipefail
-/usr/bin/time -a -o {name}.$SLURM_ARRAY_TASK_ID.o -v $SHELL -c "$(cat << 'EOF'
+/usr/bin/time -a -o {time_outfile} -v $SHELL -c "$(cat << 'EOF'
 {command}
 EOF
 )"
