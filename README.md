@@ -49,7 +49,7 @@ slurmzy run <memory in GB> <name> <command>
 
 Notes:
 
-* By default it sets a time limit of 1 hour. Change this to limit to
+* By default it sets a time limit of 8 hours. Change this to limit to
   `N` hours  with `--time N`.
 * The default queue/partition is slurm's default, unless you have
   the environment variable `SLURMZY_DEFAULT_PARTITION` set, in which case

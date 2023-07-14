@@ -65,7 +65,7 @@ def main(args=None):
         "--time",
         type=float,
         help="Time limit in hours [%(default)s]",
-        default=1,
+        default=8,
         metavar="FLOAT",
     )
     subparser_run.add_argument("ram", type=float, help="RAM limit in GB (FLOAT)")
