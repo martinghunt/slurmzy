@@ -145,11 +145,25 @@ running `slurmzy ostats *.o` gets stats of all the finished
 jobs in your current directory and not report on the jobs that are
 in progress.
 
+Alternatively, get an even shorter summary that shows just the exit
+codes of all the input `*.o` files. This count _does_ include jobs that
+have no run information, with the exit code being `No_data`. Example:
+
+```
+slurmzy ostats --summary *.o
+exit_code  count
+No_data    2
+0          42
+137        1
+```
+
+
 Options to `ostats` are:
 
 ```
   -a, --all_columns   Output all columns
   -f, --fails         Output only failed jobs
+  -s, --summary       Output summary of exit codes instead of one line per .o file
   --time_units s|m|h  Time units to report, h (hours), m (minutes), s (seconds) [h]
 ```
 
