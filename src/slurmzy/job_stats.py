@@ -159,13 +159,27 @@ def parse_o_files(options):
         "requested_ram",
         "nodes",
     ]
+    counts = {-1: 0}
+
     if options.all_columns:
         columns.extend(sorted([x for x in EMPTY_STATS if x not in columns]))
-    print(*columns, "filename", sep="\t")
+    if not options.summary:
+        print(*columns, "filename", sep="\t")
 
     for filename in options.filenames:
         stats = load_one_o_file(filename)
         if any([(x is not None) for x in stats.values()]):
+            counts[stats["exit_code"]] = counts.get(stats["exit_code"], 0) + 1
             if options.fails and stats["exit_code"] == 0:
                 continue
-            print(*(stats[x] for x in columns), filename, sep="\t")
+            if not options.summary:
+                print(*(stats[x] for x in columns), filename, sep="\t")
+        else:
+            counts[-1] += 1
+
+    if options.summary:
+        print("exit_code", "count", sep="\t")
+        for k, v in sorted(counts.items()):
+            if k == -1:
+                k = "No_data"
+            print(k, v, sep="\t")

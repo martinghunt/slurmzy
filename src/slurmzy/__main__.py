@@ -90,6 +90,9 @@ def main(args=None):
         "-f", "--fails", action="store_true", help="Output only failed jobs"
     )
     subparser_ostats.add_argument(
+        "-s", "--summary", action="store_true", help="Output summary of exit codes instead of one line per .o file",
+    )
+    subparser_ostats.add_argument(
         "--time_units",
         choices=["s", "m", "h"],
         help="Time units to report, h (hours), m (minutes), s (seconds) [%(default)s]",
