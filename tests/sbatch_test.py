@@ -15,6 +15,11 @@ def test_get_array_str():
     assert sbatch.get_array_str(1, 42, limit=3) == "#SBATCH --array=1-42%3"
 
 
+def test_after_ok_str():
+    assert sbatch.after_ok_str(None) is None
+    assert sbatch.after_ok_str("42") == "#SBATCH --dependency=afterok:42"
+
+
 def test_submit_job_dry_run():
     # Hard to test is this in any meaningful way (without actually submitting
     # a job to slurm, which don't want to do)
@@ -43,7 +48,7 @@ def test_submit_job_dry_run():
         dry_run=True,
         array_start=1,
         array_end=42,
-        array_limit=3
+        array_limit=3,
     )
     assert "echo test" in got
     assert "SBATCH --output=job_name.%a.o" in got

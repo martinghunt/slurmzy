@@ -31,6 +31,13 @@ def get_array_str(start, end, limit=10):
         return None
 
 
+def after_ok_str(after_ok):
+    if after_ok is None:
+        return None
+
+    return f"#SBATCH --dependency=afterok:{after_ok}"
+
+
 def submit_job(
     command,
     name,
@@ -42,12 +49,14 @@ def submit_job(
     array_start=None,
     array_end=None,
     array_limit=10,
+    after_ok=None,
 ):
     ram = convert_ram(ram_gb)
     array_str = get_array_str(array_start, array_end, array_limit)
     extra_opts = [
         get_partition_str(partition),
         array_str,
+        after_ok_str(after_ok),
     ]
     extra_opts = "\n".join([x for x in extra_opts if x is not None])
 
@@ -145,4 +154,5 @@ def run(options):
         array_start=options.array_start,
         array_end=options.array_end,
         array_limit=options.array_limit,
+        after_ok=options.afterok,
     )

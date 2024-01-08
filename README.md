@@ -76,6 +76,9 @@ The options to `run` are:
                         Queue ('partition') to use instead of default
   -t FLOAT, --time FLOAT
                         Time limit in hours [1]
+  --afterok JOB_ID[,JOB_ID2,...]
+                        Only run this job after specified job(s) finish ok.
+                        Provide a comma-separated list of job IDs
 ```
 
 ### Job arrays

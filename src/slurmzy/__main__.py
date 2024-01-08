@@ -68,6 +68,11 @@ def main(args=None):
         default=8,
         metavar="FLOAT",
     )
+    subparser_run.add_argument(
+        "--afterok",
+        help="Only run this job after specified job(s) finish ok. Provide a comma-separated list of job IDs",
+        metavar="JOB_ID[,JOB_ID2,...]",
+    )
     subparser_run.add_argument("ram", type=float, help="RAM limit in GB (FLOAT)")
     subparser_run.add_argument("name", type=str, help="Name of the job")
     subparser_run.add_argument(
@@ -90,7 +95,10 @@ def main(args=None):
         "-f", "--fails", action="store_true", help="Output only failed jobs"
     )
     subparser_ostats.add_argument(
-        "-s", "--summary", action="store_true", help="Output summary of exit codes instead of one line per .o file",
+        "-s",
+        "--summary",
+        action="store_true",
+        help="Output summary of exit codes instead of one line per .o file",
     )
     subparser_ostats.add_argument(
         "--time_units",
