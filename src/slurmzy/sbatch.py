@@ -43,6 +43,7 @@ def submit_job(
     name,
     ram_gb,
     time_hours,
+    out_err_prefix=None,
     dry_run=False,
     cpus=1,
     partition=None,
@@ -60,13 +61,15 @@ def submit_job(
     ]
     extra_opts = "\n".join([x for x in extra_opts if x is not None])
 
-    if array_str is None:
+    if out_err_prefix is None:
         out_err_prefix = name
+
+    if array_str is None:
         time_outfile = f"{out_err_prefix}.o"
     else:
-        out_err_prefix = name + ".%a"
+        out_err_prefix += ".%a"
         command = command.replace("SLURM_ARRAY_TASK_ID", "$SLURM_ARRAY_TASK_ID")
-        time_outfile = f"{name}.$SLURM_ARRAY_TASK_ID.o"
+        time_outfile = f"{out_err_prefix}.$SLURM_ARRAY_TASK_ID.o"
 
     # Time is a float in hours. sbatch can take it in a few forms, but easiest
     # here is default of an integer specifying the number of minutes.
@@ -148,6 +151,7 @@ def run(options):
         options.name,
         options.ram,
         options.time,
+        out_err_prefix=options.oe,
         dry_run=options.norun,
         cpus=options.cpus,
         partition=options.queue,

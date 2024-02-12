@@ -28,6 +28,11 @@ def main(args=None):
         help="Do not submit job. Print the script that would be submitted",
     )
     subparser_run.add_argument(
+        "--oe",
+        help="Outprefix of .o and .e files (default is job name)",
+        metavar="STR",
+    )
+    subparser_run.add_argument(
         "--array_start",
         type=int,
         help="Start index of job array",
