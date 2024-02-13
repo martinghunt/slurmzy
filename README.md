@@ -68,6 +68,7 @@ The options to `run` are:
 
 ```
   --norun               Do not submit job. Print the script that would be submitted
+  --oe STR              Outprefix of .o and .e files (default is job name)
   --array_start INT     Start index of job array
   --array_end INT       End index of job array
   --array_limit INT     Max array elements allowed to run [10]
@@ -75,10 +76,9 @@ The options to `run` are:
   -q QUEUE_NAME, --queue QUEUE_NAME
                         Queue ('partition') to use instead of default
   -t FLOAT, --time FLOAT
-                        Time limit in hours [1]
+                        Time limit in hours [8]
   --afterok JOB_ID[,JOB_ID2,...]
-                        Only run this job after specified job(s) finish ok.
-                        Provide a comma-separated list of job IDs
+                        Only run this job after specified job(s) finish ok. Provide a comma-separated list of job IDs
 ```
 
 ### Job arrays
@@ -123,7 +123,7 @@ That will summarise all `.o` files in your current directory. It outputs
 to `stdout` in TSV format. Example:
 
 ```
-slurmzy ostats -f *.o | column -t
+slurmzy ostats *.o | column -t
 exit_code  system_time_h  wall_clock_h  max_ram  requested_ram  nodes  filename
 0          0.2            0.21          1.01     1.6            node1  happy.o
 137        1.0            1.1           2.01     1.0            node2  too_much_ram.o
